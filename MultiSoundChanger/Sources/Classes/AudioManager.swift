@@ -83,7 +83,22 @@ final class AudioManagerImpl: AudioManager {
             && rightChannelLevel < Constants.muteVolumeLowerbound
         
         if audio.isAggregateDevice(deviceID: selectedDevice) {
-            let aggregatedDevices = audio.getAggregateDeviceSubDeviceList(deviceID: selectedDevice)
+            var aggregatedDevices = audio.getAggregateDeviceSubDeviceList(deviceID: selectedDevice)
+            
+            var aggregatedDevicesNamesDict: [String: AudioDeviceID] = [:]
+            if(audio.getDeviceName(deviceID: selectedDevice) == "nc700+"){
+                for device in aggregatedDevices {
+                    aggregatedDevicesNamesDict[audio.getDeviceName(deviceID: device)] = device
+                }
+                if aggregatedDevicesNamesDict["bose_nc_700"] != nil {
+//                    Logger.error("Aggregate device nc700+ contains bose_nc_700")
+                    aggregatedDevices = [aggregatedDevicesNamesDict["bose_nc_700"] ?? 0] // ?? 0 is providing default value in case value is nil
+                    audio.setDeviceMute(deviceID: aggregatedDevicesNamesDict["MacBook Pro Speakers"] ?? 0, isMute: true)
+                } else {
+//                    Logger.error("Aggregate device nc700+ does not contains bose_nc_700")
+                    aggregatedDevices = [aggregatedDevicesNamesDict["MacBook Pro Speakers"] ?? 0]
+                }
+            }
             
             for device in aggregatedDevices {
                 audio.setDeviceVolume(
